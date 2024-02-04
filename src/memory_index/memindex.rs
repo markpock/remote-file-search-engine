@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fs::File, io::{self, Write}, path::PathBuf};
 
-use crate::{doctable::DocTable, marshaller::write_hashtable, searchindex::{self, SearchIndex}, types::*};
+use crate::{memory_index::doctable::DocTable, utils::write_hashtable, search_engine::{self, SearchIndex}, utils::*};
 
 #[derive(Debug)]
 pub struct MemIndex {
@@ -52,7 +52,7 @@ impl MemIndex {
 
 impl SearchIndex for MemIndex {
     fn search(&self, query: &Vec<&str>) -> Vec<(PathBuf, usize)> {
-        searchindex::search(query, |s| {
+        search_engine::search(query, |s| {
             match self.index.get(s) {
                 Some(table) =>
                 Box::new(

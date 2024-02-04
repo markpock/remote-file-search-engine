@@ -1,6 +1,6 @@
 use std::{fs::File, io::Read, path::PathBuf};
 
-use crate::{searchindex::{self, SearchIndex}, types::*};
+use crate::{search_engine::{self, SearchIndex}, utils::*};
 
 pub struct IndexReader {
     file: File
@@ -23,7 +23,7 @@ impl IndexReader {
 
 impl SearchIndex for IndexReader {
     fn search(&self, query: &Vec<&str>) -> Vec<(PathBuf, usize)> {
-        searchindex::search(
+        search_engine::search(
             query,
             |s| {
                 todo!()

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use crate::types::*;
+use crate::utils::*;
 
 pub fn search<F, G, R>(query: &Vec<&str>, getiter: F, mapper: G) -> Vec<R>
     where F : Fn(&str) -> Box<dyn Iterator<Item = (DocID, usize)>>,

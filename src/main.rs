@@ -1,23 +1,18 @@
-use indexreader::IndexReader;
+use disk_index::IndexReader;
 
+#[cfg(test)]
 mod tests;
-mod types;
+mod utils;
 
-mod searchindex;
+mod memory_index;
+mod disk_index;
+mod search_engine;
 
-mod crawler;
-mod doctable;
-mod memindex;
-mod parser;
-mod searchshell;
-
-mod marshaller;
-mod indexreader;
 
 fn main() {
     // searchshell::searchshell();
-    let memindex = crawler::crawl("./text").unwrap();
+    let memindex = memory_index::crawl("./text").unwrap();
     let path = "test.idx";
-    let _ = marshaller::marshal(path, memindex);
+    let _ = disk_index::marshal(path, memindex);
     let _ = IndexReader::new(path).unwrap();
 }

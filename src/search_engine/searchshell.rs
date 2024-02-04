@@ -1,6 +1,6 @@
 use std::io::stdin;
 
-use crate::{searchindex::SearchIndex};
+use crate::search_engine::SearchIndex;
 
 pub fn searchshell(index: impl SearchIndex) {
     println!("Welcome to the file search shell! Indexing folder...");
