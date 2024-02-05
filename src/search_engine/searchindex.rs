@@ -1,31 +1,32 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{cmp::Ordering, collections::HashMap};
 
 use crate::utils::*;
 
-pub fn search<F, G, R>(query: &Vec<&str>, getiter: F, mapper: G) -> Vec<R>
-    where F : Fn(&str) -> Box<dyn Iterator<Item = (DocID, usize)>>,
-    G : Fn(&(DocID, usize)) -> R {
-    let mut documents: HashMap<DocID, usize> = HashMap::new();
+pub fn search<F, G, H, Rank>(query: &Vec<&str>, ranks: F, combine: G, compare: H) -> Vec<(DocID, Rank)>
+    where F : Fn(&str) -> Box<dyn Iterator<Item = (DocID, Rank)>>,
+    H : Fn(&Rank, &Rank) -> Ordering,
+    G : Fn(&Rank, &Rank) -> Rank {
+    let mut documents: HashMap<DocID, Rank> = HashMap::new();
     let mut iter = query.iter();
     if let Some (first) = iter.next() {
-        for (doc, val) in &mut getiter(first) {
+        for (doc, val) in &mut ranks(first) {
             documents.insert(doc, val);
         }
     } else { return Vec::new() }
     for word in iter {
-        let mut candidates: HashMap<DocID, usize> = HashMap::new();
-        for (doc, val) in &mut getiter(word) {
+        let mut candidates: HashMap<DocID, Rank> = HashMap::new();
+        for (doc, val) in &mut ranks(word) {
             if let Some (oldval) = documents.get(&doc) {
-                candidates.insert(doc, val + oldval);
+                candidates.insert(doc, combine(&val, oldval));
             }
         }
         documents = candidates;
     }
-    let mut result = documents.into_iter().collect::<Vec<(DocID, usize)>>();
-    result.sort_by(|(_, hits1), (_, hits2)| hits2.cmp(hits1));
-    result.iter().map(mapper).collect::<Vec<R>>()
+    let mut result = documents.into_iter().collect::<Vec<(DocID, Rank)>>();
+    result.sort_by(|(_, rank1), (_, rank2)| compare(rank1, rank2));
+    result
 }
 
-pub trait SearchIndex {
-    fn search(&self, query: &Vec<&str>) -> Vec<(PathBuf, usize)>;
+pub trait SearchIndex<R> {
+    fn search(&self, query: &Vec<&str>) -> Vec<R>;
 }

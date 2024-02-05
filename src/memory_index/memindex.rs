@@ -1,11 +1,11 @@
-use std::{collections::HashMap, fs::File, io::{self, Write}, path::PathBuf};
+use std::{collections::HashMap, path::PathBuf};
 
-use crate::{memory_index::doctable::DocTable, utils::write_hashtable, search_engine::{self, SearchIndex}, utils::*};
+use crate::{memory_index::doctable::DocTable, search_engine::{self, SearchIndex}, utils::*};
 
 #[derive(Debug)]
 pub struct MemIndex {
     pub(crate) doctable: DocTable,
-    index: HashMap<String, HashMap<DocID, Vec<Offset>>>
+    pub(crate) index: HashMap<String, HashMap<DocID, Vec<Offset>>>
 }
 
 impl MemIndex {
@@ -25,44 +25,27 @@ impl MemIndex {
             }
         }
     }
-
-    pub fn write_to_file(&self, file: &mut File) -> Result<usize, io::Error> {
-        Ok (
-            self.doctable.write_to_file(file)? +
-            write_hashtable(file,
-                &self.index,
-                |f, k| {
-                    Ok(f.write(k.len().to_be_bytes().as_slice())? + f.write(k.as_bytes())?)
-                },
-                |f, v| write_hashtable(
-                    f, v,
-                    |f_, k| f_.write(k.to_be_bytes().as_slice()),
-                    |f_, v_| {
-                        let mut accum = 0usize;
-                        for &elt in v_ {
-                            accum += f_.write(elt.to_be_bytes().as_slice())?;
-                        }
-                        Ok(accum)
-                    }
-                )
-            )?
-        )
-    }
 }
 
-impl SearchIndex for MemIndex {
+impl SearchIndex<(PathBuf, usize)> for MemIndex {
     fn search(&self, query: &Vec<&str>) -> Vec<(PathBuf, usize)> {
-        search_engine::search(query, |s| {
-            match self.index.get(s) {
-                Some(table) =>
-                Box::new(
-                    table.iter()
-                    .map(|(&id, vec)| (id, vec.len()))
-                    .collect::<Vec<(DocID, usize)>>().into_iter()
-                ),
-                None => Box::new(std::iter::empty())
-            }
-        },
-        |(id, hits)| (self.doctable.doc(*id).unwrap().clone(), *hits))
+        search_engine::search::<_, _, _, usize>(
+            query,
+            |s| {
+                match self.index.get(s) {
+                    Some(table) =>
+                    Box::new(
+                        table.iter()
+                        .map(|(&id, vec)| (id, vec.len()))
+                        .collect::<Vec<(DocID, usize)>>().into_iter()
+                    ),
+                    None => Box::new(std::iter::empty())
+                }
+            },
+        |a, b| a + b,
+        usize::cmp
+        ).into_iter()
+            .map(|(id, hits)| (self.doctable.doc(id).unwrap().clone(), hits))
+            .collect::<Vec<(PathBuf, usize)>>()
     }
 }

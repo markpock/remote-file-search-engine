@@ -13,6 +13,6 @@ fn main() {
     // searchshell::searchshell();
     let memindex = memory_index::crawl("./text").unwrap();
     let path = "test.idx";
-    let _ = disk_index::marshal(path, memindex);
+    let _ = memindex.marshal(path);
     let _ = IndexReader::new(path).unwrap();
 }
