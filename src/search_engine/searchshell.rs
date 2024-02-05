@@ -2,7 +2,7 @@ use std::{io::stdin, path::PathBuf};
 
 use crate::search_engine::SearchIndex;
 
-pub fn searchshell(index: impl SearchIndex<(PathBuf, usize)>) {
+pub fn searchshell(index: &mut impl SearchIndex<(PathBuf, usize)>) {
     println!("Welcome to the file search shell! Indexing folder...");
     println!("Indexing complete. Type 'quit()' to quit. Input your query on one line.\n");
     loop {

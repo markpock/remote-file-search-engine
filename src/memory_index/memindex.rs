@@ -28,7 +28,7 @@ impl MemIndex {
 }
 
 impl SearchIndex<(PathBuf, usize)> for MemIndex {
-    fn search(&self, query: &Vec<&str>) -> Vec<(PathBuf, usize)> {
+    fn search(&mut self, query: &Vec<&str>) -> Vec<(PathBuf, usize)> {
         search_engine::search::<_, _, _, usize>(
             query,
             |s| {

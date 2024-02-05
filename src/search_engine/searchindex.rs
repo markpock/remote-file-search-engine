@@ -28,5 +28,5 @@ pub fn search<F, G, H, Rank>(query: &Vec<&str>, ranks: F, combine: G, compare: H
 }
 
 pub trait SearchIndex<R> {
-    fn search(&self, query: &Vec<&str>) -> Vec<R>;
+    fn search(&mut self, query: &Vec<&str>) -> Vec<R>;
 }
